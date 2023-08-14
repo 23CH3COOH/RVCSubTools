@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyworld
 from wav_io import input_wav_file
+from common import small_val
 
 
 class MusicalScaleDivider:
@@ -19,7 +20,7 @@ class MusicalScaleDivider:
 
     def add_pitch(self, pitch, seconds_per_frame=0.005):
         for v in pitch:
-            if v < 0.0001 or np.isnan(v):
+            if v < small_val or np.isnan(v):
                 continue
             steps_from_A4 = 12 * np.log2(v / 440)
             index = int((-1) * self.__min_steps_from_A4 + 0.5 + steps_from_A4)

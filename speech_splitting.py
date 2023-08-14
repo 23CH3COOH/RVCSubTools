@@ -4,6 +4,7 @@ import os
 import librosa
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
+from common import insert_index
 
 
 '''
@@ -25,10 +26,6 @@ def split_wav(input_wav_path, min_silence_len=200, silence_thresh=-40):
         silence_thresh=silence_thresh
     )
     return chunks
-
-
-def insert_index(file_name, index):
-    return file_name.replace('.wav', '') + '_{:03d}.wav'.format(index)
 
 
 '''
