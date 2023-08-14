@@ -1,3 +1,4 @@
 !.gitkeep
 /input/*.wav
 /output/*.wav
+/output/*.png
