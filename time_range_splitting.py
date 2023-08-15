@@ -5,9 +5,13 @@ from wav_io import input_wav_file, output_wav_file
 from common import small_val, insert_index, insert_label
 
 
+# MM:SS.SSSの文字列を秒数のfloatに直す（文字列に0埋め不要）
 def to_seconds(time_str):
-    strs = time_str.split(':')
-    return 60 * int(strs[0]) + float(strs[1])
+    if ':' in time_str:
+        strs = time_str.split(':')
+        return 60 * int(strs[0]) + float(strs[1])
+    else:
+        return float(time_str)
 
 
 def get_times(input_csv_path):
@@ -17,6 +21,7 @@ def get_times(input_csv_path):
     return start_times, end_times
 
 
+# 同名のwavファイルとcsvファイルがセットで入っている必要がある
 def split_and_output_wavs(input_dir_path, output_dir_path):
     input_file_names = os.listdir(input_dir_path)
 

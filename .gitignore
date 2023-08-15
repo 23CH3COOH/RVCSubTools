@@ -2,4 +2,5 @@
 /input/*.wav
 /input/*.csv
 /output/*.wav
+/output/*.csv
 /output/*.png
