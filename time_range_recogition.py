@@ -42,6 +42,10 @@ def recognize_time_range(start_time_box, end_time_box, adding_csv_path):
     end_time_ms = end_time_hms[2:]
     print('End time   {}'.format(end_time_ms))
 
+    if not os.path.exists(adding_csv_path):
+        with open(adding_csv_path, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Start', 'End'])
     # newline=''を指定しないと余分な改行が出力されてしまう
     with open(adding_csv_path, 'a', newline='') as f:
         writer = csv.writer(f)

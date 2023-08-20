@@ -7,11 +7,15 @@ from common import small_val, insert_index, insert_label
 
 # MM:SS.SSSの文字列を秒数のfloatに直す（文字列に0埋め不要）
 def to_seconds(time_str):
-    if ':' in time_str:
-        strs = time_str.split(':')
-        return 60 * int(strs[0]) + float(strs[1])
-    else:
-        return float(time_str)
+    try:
+        if ':' in time_str:
+            strs = time_str.split(':')
+            return 60 * int(strs[0]) + float(strs[1])
+        else:
+            return float(time_str)
+    except:
+        print('Invalid time string: {}'.format(time_str))
+        assert False
 
 
 def get_times(input_csv_path):

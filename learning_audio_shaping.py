@@ -10,8 +10,8 @@ from silence import change_length_edge_silence
 class Settings:
     def __init__(self):
         self.amp_rate = 1.0  # リサンプリング時の波形倍率（オーバーフロー対策）
-        self.length_fade_in = 50.0  # フェードインさせる長さ[msec]
-        self.length_fade_out = 50.0  # フェードアウトさせる長さ[msec]
+        self.length_fade_in = 20.0  # フェードインさせる長さ[msec]
+        self.length_fade_out = 20.0  # フェードアウトさせる長さ[msec]
         self.length_start_silence = 10.0  # 開始の無音の長さ[msec]
         self.length_end_silence = 10.0  # 終了の無音の長さ[msec]
         self.output_samling_rate = 40000  # 出力wavのサンプリングレート[Hz]
@@ -38,9 +38,11 @@ def shape_wavs(input_dir_path, settings, output_dir_path):
         les = settings.length_end_silence
         osr = settings.output_samling_rate
 
-        if not isr == osr:
+        if isr == osr:
+            print('  Info: Skip resampling.')
+        else:
             if wav.dtype == np.int16 and amp * np.max(np.abs(wav)) >= 32400:
-                print('Warning: Overflow possibility in resampling.')
+                print('  Warning: Overflow possibility in resampling.')
             wav_f = amp * wav.astype(np.float64)
             wav = resample(wav_f, orig_sr=isr, target_sr=osr).astype(wav.dtype)
         fade_edge(osr, lfi, lfo, wav)
