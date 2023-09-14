@@ -2,9 +2,8 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-import pyworld
+from pitch_analyzer import analyze_pitch
 from wav_io import input_wav_file
-from common import small_val
 
 
 class MusicalScaleDivider:
@@ -20,7 +19,7 @@ class MusicalScaleDivider:
 
     def add_pitch(self, pitch, seconds_per_frame=0.005):
         for v in pitch:
-            if v < small_val or np.isnan(v):
+            if np.isnan(v):
                 continue
             steps_from_A4 = 12 * np.log2(v / 440)
             index = int((-1) * self.__min_steps_from_A4 + 0.5 + steps_from_A4)
@@ -50,13 +49,11 @@ def output_graph(scales, seconds, dir_path, adding_label):
 
     plt.bar(np.arange(size), seconds, width=0.8, tick_label=scales)
     # 保存直前にplt.show()すると保存しても中身が描かれない模様
-    plt.savefig(dir_path + 'pitch_distribution_{}.png'.format(adding_label))
-
-
-def analyze_pitch(wav, sr):
-    wav_f = wav.astype(np.float64)
-    pitch_temp, time = pyworld.dio(wav_f, sr)
-    return pyworld.stonemask(wav_f, pitch_temp, time, sr)
+    file_path = dir_path + 'pitch_distribution_{}.png'.format(adding_label)
+    if os.path.exists(file_path):
+        print('Already Exist: {}'.format(file_path))
+    else:
+        plt.savefig(file_path)
 
 
 def output_pitch_distribution(input_dir_path, output_dir_path, adding_label):
