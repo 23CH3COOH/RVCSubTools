@@ -5,6 +5,8 @@ from pitch_analyzer import analyze_pitch
 from wav_io import input_wav_file
 
 
+# input_dir_pathにある各wavファイルに対して音程の変動の平均を標準出力する。
+# 音程はHzのlog2で扱い、シフトは5msとする。
 def calc_mean_pitch_variation(input_dir_path):
     for file_name in os.listdir(input_dir_path):
         if not '.wav' in file_name:
