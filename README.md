@@ -7,32 +7,35 @@ RVC(Retrieval-based-Voice-Conversion)用の補助ツール
 wavファイルを無音部分で切り取って分割（発話分割）する。
 バック音楽なしで録音されたセリフ音声を分割する用途。
 
-time_range_splitting.py
+### time_range_splitting.py
 あらかじめ指定した切り取り開始時刻と終了時刻のペアによりwavファイルを切り取る。
 切り取り開始時刻と終了時刻はwavファイルと同フォルダ同名のcsvファイルとして用意する。
 ボーカル音声から使いたい部分を切り取る用途。
 
-learning_audio_shaping.py
+### learning_audio_shaping.py
 切り取ったwavファイルをRVCでの学習に用いるために以下の手順で整形する。
 1. サンプリング周波数を変える（RVC-betaのv2は40000Hzのみ対応なので）
 2. 開始部分をフェードインさせ終了部分をフェードアウトさせる
 3. 開始部分と終了部分の無音の長さを整える
 
-time_range_recogition.py
+### time_range_recogition.py
 PCのウィンドウ上に表示されている開始時刻の文字と開始終了の文字を読み取り、指定csvファイルに書き込む。
 音声ファイル編集ソフト画面の表示を読み取る用途。
 
-pitch_distribution.py
+### pitch_distribution.py
 用意したwavファイル全ての音声から音程の分布図を画像出力する。
 学習に用いる音声がどの程度の音程範囲を網羅できているかを確認する用途。
 
-pitch_variation.py
+### pitch_variation.py
 各wavファイルに対して音程の変動の平均を表示する。
 
-amp_changer.py
+### amp_changer.py
 用意したwavファイルの波形を一定倍率する。
 何らかの理由で小さくすることを想定。使い道があるか不明。
 
-copy_files.py
+### copy_files.py
 指定したファイル達を別のフォルダに単にコピーする。
 学習に用いる音声を限定するための用途。
+
+### filtering.py
+学習に用いる音声または推論元（変換元）の音声の周波数を色々フィルタリングする。

@@ -20,9 +20,21 @@ def input_wav_file(input_wav_path, return_type='all', to_mono=True):
     return sr, wav
 
 
+'''
+出力のビット数はPCM_16固定
+引数wavのデータ型はnp.int16か-1以上1未満の浮動小数どちらでも可
+'''
 def output_wav_file(wav, output_samling_rate, output_file_path):
     try:
-        wavfile.write(output_file_path, output_samling_rate, wav)
+        if wav.dtype == np.int16:
+            wavfile.write(output_file_path, output_samling_rate, wav)
+        else:
+            if -1.0 <= np.min(wav) and np.max(wav) < 1.0:
+                wav_int16 = ((2 ** 15) * wav).astype(np.int16)
+                wavfile.write(output_file_path, output_samling_rate, wav_int16)
+            else:
+                print('Invalid wav format.')
+                return False
         return True
     except Exception as e:
         print(e)
