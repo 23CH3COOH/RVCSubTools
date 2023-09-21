@@ -7,12 +7,30 @@ from pitch_analyzer import analyze_pitch
 from wav_io import input_wav_file, output_wav_file
 
 
+# 原則freqがpitchの倍数のときに1で、そこから外れるにつれ滑らかに減少する関数にする
+def coef_calculator_function_1(pitch, freq):
+    if freq < pitch:
+        return 1.0
+    return 0.5 + 0.5 * np.cos(2 * np.pi * (freq - pitch) / pitch)
+
+
+def coef_calculator_function_2(pitch, freq):
+    if freq < 0.5 * pitch:
+        return 1.0
+    residual_rate = freq / pitch - int(freq / pitch)
+    assert 0.0 <= residual_rate and residual_rate < 1.0
+    if 0.25 <= residual_rate and residual_rate < 0.75:
+        return 0.0
+    return 0.5 + 0.5 * np.cos(4 * np.pi * residual_rate)
+
+
 class Settings:
     def __init__(self):
         self.sr = 44100
         self.win_frames = 4410
         self.shift_frames = 441
         self.window = 'hann'
+        self.coef_calc = coef_calculator_function_1
 
 
 def get_pitch(input_wav_path):
@@ -21,15 +39,13 @@ def get_pitch(input_wav_path):
 
 
 # フーリエ変換後の1時刻分の周波数軸配列に対して乗算する係数配列を求める
-def make_filtering_operator_onetime(pitch, base_hz, freq_dims):
+def make_filtering_operator_onetime(pitch, base_hz, freq_dims, coef_calc):
     res = np.full(freq_dims, 1.0)
     if np.isnan(pitch):
         return res
     for i in range(freq_dims):
         freq = base_hz * i
-        if freq < pitch:
-            continue
-        res[i] = 0.5 + 0.5 * np.cos(2 * np.pi * (freq - pitch) / pitch)
+        res[i] = coef_calc(pitch, freq)
     return res
 
 
@@ -56,7 +72,8 @@ def make_filtering_operator(pitch, settings):
         res[:, i] = make_filtering_operator_onetime(
             pitch[ic.to_pitch_index(i)],
             settings.sr / settings.win_frames,
-            freq_dims)
+            freq_dims,
+            settings.coef_calc)
     return res
 
 
@@ -79,6 +96,10 @@ def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
 
     logmsg_fmt = '[DEBUG] Time Counts: pitch {}, stft {}, stft_filtered {}'
     print(logmsg_fmt.format(pitch.shape[0], F.shape[1], filtering.shape[1]))
+    if F.shape[1] < filtering.shape[1]:
+        G = np.full(filtering.shape, 0.0 + 0.0j)
+        G[:, :F.shape[1]] = F
+        F = G
     assert F.shape == filtering.shape
 
     F_fil = F * filtering
@@ -96,6 +117,7 @@ def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
 
 if __name__ == '__main__':
     settings = Settings()
+    settings.coef_calc = coef_calculator_function_2
     input_wav_path = 'input/test.wav'
     output_wav_path = 'output/test_conv.wav'
     reduce_inharmonic_partials(input_wav_path, settings, output_wav_path)

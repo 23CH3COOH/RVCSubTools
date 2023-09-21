@@ -3,11 +3,18 @@ import os
 import shutil
 
 
+def add_extension(file_name, extension='.wav'):
+    if extension in file_name:
+        return file_name
+    else:
+        return file_name + extension
+
+
 def get_file_names(list_file_path):
     f = open(list_file_path, 'r')
     rows = f.readlines()
     f.close()
-    return [row.strip() for row in rows]
+    return [add_extension(row.strip()) for row in rows]
 
 
 def copy_files(input_dir_path, list_file_path, output_dir_path):
