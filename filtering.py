@@ -33,11 +33,6 @@ class Settings:
         self.coef_calc = coef_calculator_function_1
 
 
-def get_pitch(input_wav_path):
-    sr, wav = input_wav_file(input_wav_path, to_mono=True)
-    return analyze_pitch(wav, sr)
-
-
 # フーリエ変換後の1時刻分の周波数軸配列に対して乗算する係数配列を求める
 def make_filtering_operator_onetime(pitch, base_hz, freq_dims, coef_calc):
     res = np.full(freq_dims, 1.0)
@@ -77,13 +72,8 @@ def make_filtering_operator(pitch, settings):
     return res
 
 
-# 非整数次倍音の成分を減らす
-def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
-    if not os.path.exists(input_wav_path):
-        print('Not Exist: {}'.format(input_wav_path))
-        return
-
-    wav, sr = librosa.load(input_wav_path, sr=settings.sr, mono=True)
+def reduce_inharmonic_partials_from_mono(
+        wav, wav_int16, settings, output_path_without_ext):
     # フーリエ変換時のシフト長さの倍数に調節し、未満は切り捨てる
     wav = wav[:(wav.size // settings.win_frames) * settings.win_frames]
     F = librosa.stft(wav,
@@ -91,7 +81,7 @@ def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
                      win_length=settings.win_frames,
                      hop_length=settings.shift_frames,
                      window=settings.window)
-    pitch = get_pitch(input_wav_path)
+    pitch = analyze_pitch(wav_int16, settings.sr)
     filtering = make_filtering_operator(pitch, settings)
 
     logmsg_fmt = '[DEBUG] Time Counts: pitch {}, stft {}, stft_filtered {}'
@@ -110,14 +100,39 @@ def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
 
     logmsg_fmt = '[DEBUG] Wav Frames: original {}, filtered {}'
     print(logmsg_fmt.format(wav.shape[0], wav_fil.shape[0]))
-    output_wav_file(wav_fil, sr, output_wav_path)
+    if output_path_without_ext:
+        output_graph(wav, pitch, F, F_fil, settings, output_path_without_ext)
+    return wav_fil
+
+
+# 非整数次倍音の成分を減らす
+def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
+    if not os.path.exists(input_wav_path):
+        print('Not Exist: {}'.format(input_wav_path))
+        return
+
+    wav, sr_1 = librosa.load(input_wav_path, sr=settings.sr, mono=False)
+    sr_2, wav_int16 = input_wav_file(input_wav_path, to_mono=False)
+    assert sr_1 == sr_2
     output_path_without_ext = output_wav_path.replace('.wav', '')
-    output_graph(wav, pitch, F, F_fil, settings, output_path_without_ext)
+
+    if wav.ndim == 1:
+        wav_fil = reduce_inharmonic_partials_from_mono(
+            wav, wav_int16, settings, output_path_without_ext)
+    elif wav.ndim == 2:
+        assert wav.shape[0] == 2
+        assert wav_int16.shape[1] == 2
+        wav_fil_L = reduce_inharmonic_partials_from_mono(
+            wav[0, :], wav_int16[:, 0], settings, None)
+        wav_fil_R = reduce_inharmonic_partials_from_mono(
+            wav[1, :], wav_int16[:, 1], settings, None)
+        wav_fil = np.array([wav_fil_L, wav_fil_R]).T
+    output_wav_file(wav_fil, settings.sr, output_wav_path)
 
 
 if __name__ == '__main__':
     settings = Settings()
     settings.coef_calc = coef_calculator_function_2
-    input_wav_path = 'input/test.wav'
-    output_wav_path = 'output/test_conv.wav'
+    input_wav_path = 'input/test_44100Hz_stereo.wav'
+    output_wav_path = 'output/test_44100Hz_stereo.wav'
     reduce_inharmonic_partials(input_wav_path, settings, output_wav_path)

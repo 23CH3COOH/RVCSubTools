@@ -28,14 +28,18 @@ def output_wav_file(wav, output_samling_rate, output_file_path):
     try:
         if wav.dtype == np.int16:
             wavfile.write(output_file_path, output_samling_rate, wav)
+            return True
         else:
             if -1.0 <= np.min(wav) and np.max(wav) < 1.0:
                 wav_int16 = ((2 ** 15) * wav).astype(np.int16)
                 wavfile.write(output_file_path, output_samling_rate, wav_int16)
-            else:
-                print('Invalid wav format.')
-                return False
-        return True
+                return True
+            if -1.25 <= np.min(wav) and np.max(wav) < 1.25:
+                wav_int16 = ((2 ** 15) * 0.8 * wav).astype(np.int16)
+                wavfile.write(output_file_path, output_samling_rate, wav_int16)
+                return True
+            print('Invalid wav format.')
+            return False
     except Exception as e:
         print(e)
         return False
