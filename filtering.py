@@ -72,6 +72,7 @@ def make_filtering_operator(pitch, settings):
     return res
 
 
+# [ToDo] ここでInter Samle Overshootが起きないようにしたい
 def reduce_inharmonic_partials_from_mono(
         wav, wav_int16, settings, output_path_without_ext):
     # フーリエ変換時のシフト長さの倍数に調節し、未満は切り捨てる
@@ -123,10 +124,12 @@ def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
         assert wav.shape[0] == 2
         assert wav_int16.shape[1] == 2
         wav_fil_L = reduce_inharmonic_partials_from_mono(
-            wav[0, :], wav_int16[:, 0], settings, None)
+            wav[0, :], wav_int16[:, 0], settings, output_path_without_ext)
         wav_fil_R = reduce_inharmonic_partials_from_mono(
             wav[1, :], wav_int16[:, 1], settings, None)
         wav_fil = np.array([wav_fil_L, wav_fil_R]).T
+    else:
+        assert False
     output_wav_file(wav_fil, settings.sr, output_wav_path)
 
 

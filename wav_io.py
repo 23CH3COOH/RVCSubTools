@@ -35,6 +35,7 @@ def output_wav_file(wav, output_samling_rate, output_file_path):
                 wavfile.write(output_file_path, output_samling_rate, wav_int16)
                 return True
             if -1.25 <= np.min(wav) and np.max(wav) < 1.25:
+                print('Shrinked Wav Amp 80%.')
                 wav_int16 = ((2 ** 15) * 0.8 * wav).astype(np.int16)
                 wavfile.write(output_file_path, output_samling_rate, wav_int16)
                 return True
