@@ -24,6 +24,12 @@ def coef_calculator_function_2(pitch, freq):
     return 0.5 + 0.5 * np.cos(4 * np.pi * residual_rate)
 
 
+def coef_calculator_function_3(pitch, freq):
+    if freq < 0.5 * pitch:
+        return 1.0
+    return 0.6 - 0.4 * np.cos(2 * np.pi * (freq - pitch) / pitch)
+
+
 class Settings:
     def __init__(self):
         self.sr = 44100
@@ -73,7 +79,7 @@ def make_filtering_operator(pitch, settings):
 
 
 # [ToDo] ここでInter Samle Overshootが起きないようにしたい
-def reduce_inharmonic_partials_from_mono(
+def reduce_harmonic_or_inharmonic_partials_from_mono(
         wav, wav_int16, settings, output_path_without_ext):
     # フーリエ変換時のシフト長さの倍数に調節し、未満は切り捨てる
     wav = wav[:(wav.size // settings.win_frames) * settings.win_frames]
@@ -106,16 +112,25 @@ def reduce_inharmonic_partials_from_mono(
     return wav_fil
 
 
-# 非整数次倍音の成分を減らす
-def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
+# 整数次倍音または非整数次倍音の成分を減らす
+def reduce_harmonic_or_inharmonic_partials(
+        input_wav_path, settings, output_wav_path, to_graph=False):
     if not os.path.exists(input_wav_path):
         print('Not Exist: {}'.format(input_wav_path))
         return
 
     wav, sr_1 = librosa.load(input_wav_path, sr=settings.sr, mono=False)
+    if np.any(np.isnan(wav)):
+        print('Lack value by librosa.')
+        assert False
     sr_2, wav_int16 = input_wav_file(input_wav_path, to_mono=False)
+    if np.any(np.isnan(wav_int16)):
+        print('Lack value by scipy.')
+        assert False
     assert sr_1 == sr_2
-    output_path_without_ext = output_wav_path.replace('.wav', '')
+    output_path_without_ext = None
+    if to_graph:
+        output_path_without_ext = output_wav_path.replace('.wav', '')
 
     if wav.ndim == 1:
         wav_fil = reduce_inharmonic_partials_from_mono(
@@ -123,9 +138,9 @@ def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
     elif wav.ndim == 2:
         assert wav.shape[0] == 2
         assert wav_int16.shape[1] == 2
-        wav_fil_L = reduce_inharmonic_partials_from_mono(
+        wav_fil_L = reduce_harmonic_or_inharmonic_partials_from_mono(
             wav[0, :], wav_int16[:, 0], settings, output_path_without_ext)
-        wav_fil_R = reduce_inharmonic_partials_from_mono(
+        wav_fil_R = reduce_harmonic_or_inharmonic_partials_from_mono(
             wav[1, :], wav_int16[:, 1], settings, None)
         wav_fil = np.array([wav_fil_L, wav_fil_R]).T
     else:
@@ -135,7 +150,8 @@ def reduce_inharmonic_partials(input_wav_path, settings, output_wav_path):
 
 if __name__ == '__main__':
     settings = Settings()
-    settings.coef_calc = coef_calculator_function_2
+    settings.coef_calc = coef_calculator_function_3
     input_wav_path = 'input/test_44100Hz_stereo.wav'
     output_wav_path = 'output/test_44100Hz_stereo.wav'
-    reduce_inharmonic_partials(input_wav_path, settings, output_wav_path)
+    reduce_harmonic_or_inharmonic_partials(
+        input_wav_path, settings, output_wav_path, to_graph=True)

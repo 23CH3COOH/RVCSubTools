@@ -33,6 +33,7 @@ def output_graph_5sec(wav, pitch, F, F_fil, settings, output_png_path, count):
 
     hop = settings.shift_frames
     sr = settings.sr
+    # [FixMe] librosaにdisplayが存在しなくなっている
     draw = librosa.display.specshow
 
     ax2 = fig.add_subplot(3, 1, 2)

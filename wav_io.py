@@ -40,6 +40,7 @@ def output_wav_file(wav, output_samling_rate, output_file_path):
                 wavfile.write(output_file_path, output_samling_rate, wav_int16)
                 return True
             print('Invalid wav format.')
+            print('Max is {}, Min is {}'.format(np.min(wav), np.max(wav)))
             return False
     except Exception as e:
         print(e)
