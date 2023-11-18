@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 import librosa
+import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+audible_upper_hz = 20000
+partly_upper_hz = 10000
 
 
 def output_graph_5sec(wav, pitch, F, F_fil, settings, output_png_path, count):
@@ -33,7 +38,6 @@ def output_graph_5sec(wav, pitch, F, F_fil, settings, output_png_path, count):
 
     hop = settings.shift_frames
     sr = settings.sr
-    # [FixMe] librosaにdisplayが存在しなくなっている
     draw = librosa.display.specshow
 
     ax2 = fig.add_subplot(3, 1, 2)
@@ -43,7 +47,7 @@ def output_graph_5sec(wav, pitch, F, F_fil, settings, output_png_path, count):
     xticks = np.linspace(0, 5, 11)
     ax2.set_xticks(xticks, 5.0 * count + xticks)
     ax2.set_xlabel('Time [sec]')
-    ax2.set_ylim(0, 10000)
+    ax2.set_ylim(0, partly_upper_hz)
     ax2.set_ylabel('Freqency [Hz]')
 
     ax3 = fig.add_subplot(3, 1, 3)
@@ -53,7 +57,7 @@ def output_graph_5sec(wav, pitch, F, F_fil, settings, output_png_path, count):
     xticks = np.linspace(0, 5, 11)
     ax3.set_xticks(xticks, 5.0 * count + xticks)
     ax3.set_xlabel('Time [sec]')
-    ax3.set_ylim(0, 10000)
+    ax3.set_ylim(0, partly_upper_hz)
     ax3.set_ylabel('Freqency [Hz]')
 
     plt.savefig(output_png_path)
@@ -77,3 +81,54 @@ def output_graph(wav, pitch, F, F_fil, settings, output_path_without_ext):
             output_path_without_ext + '_{:02d}.png'.format(count),
             count)
         count += 1
+
+
+def output_one_time(db_1, db_2, settings, name_1, name_2, output_png_path):
+    assert db_1.ndim == 1 and db_2.ndim == 1
+    unit_hz = settings.sr / settings.win_frames
+    ind_upper = int(float(audible_upper_hz) / unit_hz)
+
+    fig = plt.figure(figsize=(19.2, 9.6))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.set_xlim(0, ind_upper)
+    # [ToDo] 横軸の値をインデックスでなくHzにする
+    #ax.set_xticks([10 * unit_hz * i for i in range(ind_upper // 10)])
+    ax.set_xlabel('Freqency [Hz]')
+    ax.set_ylabel('Volume [dB]')
+    ax.grid()
+    ax.plot(db_1[:ind_upper], linewidth=1.0, color='blue', label=name_1)
+    ax.plot(db_2[:ind_upper], linewidth=1.0, color='red', label=name_2)
+    ax.legend()
+
+    plt.savefig(output_png_path)
+    plt.clf()
+    plt.close()
+
+
+def output_transition(db_1, db_2, settings, name_1, name_2, output_png_path):
+    fig = plt.figure(figsize=(19.2, 9.6))
+    hop = settings.shift_frames
+    sr = settings.sr
+    draw = librosa.display.specshow
+
+    ax1 = fig.add_subplot(2, 1, 1)
+    draw(db_1, hop_length=hop, sr=sr, x_axis='time', y_axis='hz', ax=ax1)
+    #fig.colorbar(img2, ax=ax1, format='%+2.f dB')
+    #xticks = np.linspace(0, 5, 11)
+    #ax1.set_xticks(xticks, 5.0 * count + xticks)
+    ax1.set_xlabel('Time [sec]')
+    ax1.set_ylim(0, audible_upper_hz)
+    ax1.set_ylabel('Freqency [Hz]')
+
+    ax2 = fig.add_subplot(2, 1, 2)
+    draw(db_2, hop_length=hop, sr=sr, x_axis='time', y_axis='hz', ax=ax2)
+    #fig.colorbar(img3, ax=ax2, format='%+2.f dB')
+    #xticks = np.linspace(0, 5, 11)
+    #ax2.set_xticks(xticks, 5.0 * count + xticks)
+    ax2.set_xlabel('Time [sec]')
+    ax2.set_ylim(0, audible_upper_hz)
+    ax2.set_ylabel('Freqency [Hz]')
+
+    plt.savefig(output_png_path)
+    plt.clf()
+    plt.close()

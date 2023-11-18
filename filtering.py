@@ -2,7 +2,7 @@
 import os
 import librosa
 import numpy as np
-from graph_filtering_result import output_graph
+from graph_frequency_result import output_graph
 from pitch_analyzer import analyze_pitch
 from wav_io import input_wav_file, output_wav_file
 
@@ -154,4 +154,4 @@ if __name__ == '__main__':
     input_wav_path = 'input/test_44100Hz_stereo.wav'
     output_wav_path = 'output/test_44100Hz_stereo.wav'
     reduce_harmonic_or_inharmonic_partials(
-        input_wav_path, settings, output_wav_path, to_graph=True)
+        input_wav_path, settings, output_wav_path, to_graph=False)
